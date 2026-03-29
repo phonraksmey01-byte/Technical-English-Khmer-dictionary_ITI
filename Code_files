@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technical English-Khmer Dictionary</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Kantumruy Pro', sans-serif;
+            background-color: #f8fafc;
+        }
+        .khmer-font { font-family: 'Kantumruy Pro', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 1);
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .animate-shake { animation: shake 0.2s ease-in-out 2; }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-indigo-900 text-white p-6 shadow-lg">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Technical English-Khmer Dictionary</h1>
+                <p class="text-indigo-200 text-sm md:text-base">Automotive Body Repair - Prepared by Mr. PHON Raksmey</p>
+            </div>
+            <button onclick="showGroupSelection()" class="bg-indigo-700 hover:bg-indigo-600 px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                <span>Change Group</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-4 md:p-8">
+        
+        <!-- Navigation Tabs -->
+        <div id="levelNavigation" class="hidden mb-8 flex flex-wrap gap-2 justify-center">
+            <button onclick="switchLevel('A')" id="btnLevelA" class="px-6 py-3 rounded-full font-semibold transition-all">Level A: Learn</button>
+            <button onclick="switchLevel('B')" id="btnLevelB" class="px-6 py-3 rounded-full font-semibold transition-all">Level B: Refresh</button>
+            <button onclick="switchLevel('C')" id="btnLevelC" class="px-6 py-3 rounded-full font-semibold transition-all">Level C: Quiz</button>
+        </div>
+
+        <!-- Group Selection Screen -->
+        <div id="groupSelection" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Group cards injected here via JS -->
+        </div>
+
+        <!-- Level A: Learn (Flashcards) -->
+        <div id="levelA" class="hidden">
+            <div id="flashcardContainer" class="max-w-2xl mx-auto"></div>
+            <div class="flex justify-center mt-8 gap-4 items-center">
+                <button onclick="prevCard()" class="p-3 rounded-full bg-white border border-slate-200 hover:bg-slate-50 shadow-sm transition-all disabled:opacity-30" id="prevBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <span id="cardCounter" class="font-bold text-slate-500">1 / 10</span>
+                <button onclick="nextCard()" class="p-3 rounded-full bg-white border border-slate-200 hover:bg-slate-50 shadow-sm transition-all disabled:opacity-30" id="nextBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Level B: Refresh (Matching Game) -->
+        <div id="levelB" class="hidden max-w-4xl mx-auto">
+            <div id="matchingGame" class="grid grid-cols-2 gap-4">
+                <div id="englishList" class="space-y-3"></div>
+                <div id="khmerList" class="space-y-3"></div>
+            </div>
+            <div id="matchResult" class="mt-8 text-center hidden">
+                <button onclick="resetLevelB()" class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all">Try Again</button>
+            </div>
+        </div>
+
+        <!-- Level C: Quiz -->
+        <div id="levelC" class="hidden max-w-2xl mx-auto">
+            <div id="quizContent" class="space-y-6"></div>
+            <div id="quizResult" class="hidden mt-8 p-8 bg-white rounded-2xl shadow-lg text-center">
+                <h3 class="text-2xl font-bold mb-4">Quiz Complete!</h3>
+                <p id="scoreText" class="text-4xl font-bold text-indigo-600 mb-6">0 / 10</p>
+                <button onclick="resetLevelC()" class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700">Retake Quiz</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const groups = [
+            {
+                id: 1,
+                title: "Group 1: Workshop Basics",
+                words: [
+                    { en: "Accumulator", kh: "អាគុយ (ឧបករណ៍ស្តុកថាមពល)", def: "A device that stores electrical power, usually the vehicle's battery.", img: "https://www.startrescue.co.uk/media/00398c87-314b-4f0c-a5e3-069641d032b9.jpg", context: "The car would not start because the accumulator was flat." },
+                    { en: "Air Filter", kh: "តម្រងខ្យល់", def: "A device which removes dust and dirt from the air before it enters the engine.", img: "https://blog.gsa-messgeraete.de/wp-content/uploads/2025/01/Changing-cabin-air-filter.jpg", context: "Replace the air filter every 10,000 kilometers." },
+                    { en: "Alternator", kh: "ដាយណាម៉ូសាក", def: "A generator that charges the battery while the engine is running.", img: "https://media.hswstatic.com/eyJidWNrZXQiOiJjb250ZW50Lmhzd3N0YXRpYy5jb20iLCJrZXkiOiJnaWZcL2FsdGVybmF0b3ItdXBkYXRlMy0xLmpwZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJ3aWR0aCI6ODI4fX19", context: "A faulty alternator will cause the electrical system to fail." },
+                    { en: "Brake Pad", kh: "ស្បែកហ្វ្រាំង", def: "Friction material that presses against the brake disc to stop the car.", img: "https://images.ctfassets.net/i874q3cs1cvx/62631/73e651912200bc15080070cea5aac0ae/Worn-Brakes-scaled.jpg", context: "Squealing noises often mean the brake pads are worn out." },
+                    { en: "Chassis", kh: "តួឡាន", def: "The structural frame of the vehicle that supports all components.", img: "https://engineeringcheatsheet.com/wp-content/uploads/2024/01/image-19.png", context: "The chassis must be inspected for alignment." },
+                    { en: "Cylinder Head", kh: "ក្បាលស៊ីឡាំង", def: "The top part of the engine block that seals the cylinders.", img: "https://s19529.pcdn.co/wp-content/uploads/2025/01/cylinder-head-feature.jpg", context: "The cylinder head houses the valves and spark plugs." },
+                    { en: "Distributor", kh: "ឧបករណ៍បែងចែកភ្លើង", def: "Routes high voltage from the ignition coil to the spark plugs.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Distributor_cap_of_AMC_inline-6%2C_top.jpg/250px-Distributor_cap_of_AMC_inline-6%2C_top.jpg", context: "The distributor ensures each spark plug fires at the right time." },
+                    { en: "Exhaust Pipe", kh: "បំពង់ស៊ីម៉ាំង", def: "A pipe through which burned gases are expelled from an engine.", img: "https://motorcompanyleicester.co.uk/wp-content/uploads/2019/01/exhaust.jpg", context: "The exhaust pipe carries fumes away from the cabin." },
+                    { en: "Fuse", kh: "ហ្វុយស៊ីប", def: "A safety device that protects electrical circuits from overloading.", img: "https://www.communica.co.za/cdn/shop/products/5a-blade-fuse-727941_600x.jpg?v=1706054958", context: "If the radio stops working, check the fuse first." },
+                    { en: "Radiator", kh: "ប្រព័ន្ធបញ្ចុះកម្តៅរថយន្ត", def: "A heat exchanger used to cool the engine coolant.", img: "https://cdn11.bigcommerce.com/s-uej33jmk52/images/stencil/770x500/uploaded_images/repair-of-modern-car-radiators.png?t=1643237318", context: "The radiator prevents the engine from overheating." }
+                ]
+            },
+            {
+                id: 2,
+                title: "Group 2: Exterior Body Parts",
+                words: [
+                    { en: "Bumper", kh: "កាងឡាន", def: "A structure at the front and rear to absorb impact during a crash.", img: "https://autoprotoway.com/wp-content/uploads/2024/10/car-bumper.jpg", context: "Plastic bumpers are designed to be flexible." },
+                    { en: "Fender", kh: "ស្លាបឡាន", def: "The part of the body that frames the wheel well.", img: "https://skl-sklc-tinymce-2021.s3.amazonaws.com/comp/2021/05/mceclip0_1619873229.png", context: "The front-left fender was replaced after the accident." },
+                    { en: "Bonnet", kh: "គម្របម៉ាស៊ីន", def: "The hinged cover over the engine (also known as the hood).", img: "https://img.freepik.com/premium-psd/white-car-with-open-hood_988745-6306.jpg?semt=ais_incoming&w=740&q=80", context: "Use the release lever inside the car to open the bonnet." },
+                    { en: "Boot lid", kh: "គម្របខាងក្រោយ", def: "The door or cover for the rear storage compartment.", img: "https://www.breakerlink.com/blog/wp-content/uploads/2016/07/boot.jpg", context: "The boot lid is equipped with hydraulic struts." },
+                    { en: "Windshield", kh: "កញ្ចក់ឡាន (ខាងមុខ)", def: "The large front glass window of a vehicle.", img: "https://fixedopsdigital.s3.amazonaws.com/oem/honda/service/windshield-repair/generic-windshield-replacement.jpg", context: "Keep the windshield clean for better visibility." },
+                    { en: "Side Mirror", kh: "កញ្ចក់មើលក្រោយ (ចំហៀង)", def: "Exterior mirrors for viewing the area behind and to the side.", img: "https://www.familyhandyman.com/wp-content/uploads/2025/04/Why-Do-Some-Side-Mirrors-Have-a-Second-Mirror_GettyImages-1339477447_FT.jpg", context: "Adjust the side mirror to eliminate blind spots." },
+                    { en: "Grille", kh: "ប៉ាណាឡាន", def: "A decorative mesh covering the front air intake.", img: "https://ethoscarcare.com/cdn/shop/articles/10-Car-Manufacturers-and-their-signature-Grilles-01.jpg?v=1656048762", context: "The radiator is located directly behind the front grille." },
+                    { en: "Door Handle", kh: "ដៃទ្វារឡាន", def: "The mechanism used to unlatch and open the vehicle door.", img: "https://www.autodeal.com.ph/custom/blog-post/header/types-of-door-handles-620cc36819e84.jpg", context: "Pull the door handle firmly to exit the car." },
+                    { en: "Headlight", kh: "ចង្កៀងមុខ", def: "The main lights used for nighttime driving.", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTbJY2pru1_86TpK7F-27hxognQk30CNKis1Q&s", context: "Modern headlights use LED technology." },
+                    { en: "Roof", kh: "ដំបូលឡាន", def: "The top panel of the vehicle body.", img: "https://skl-sklc-tinymce-2021.s3.amazonaws.com/comp/2021/08/xuv500-exterior-car-roof_1629478031.jpg", context: "The car roof provides structural rigidity." }
+                ]
+            },
+            {
+                id: 3,
+                title: "Group 3: Interior Body Parts",
+                words: [
+                    { en: "Dashboard", kh: "តាប្លូឡាន", def: "The control panel located in front of the driver and passenger.", img: "https://media.gettyimages.com/id/1154563842/photo/car-dashboard.jpg?s=612x612&w=0&k=20&c=X7y4X8iR9Jv9-v6G3_L-z_R_p_0_n_q_q_j_o_k_=", context: "The speedometer is located on the dashboard." },
+                    { en: "Steering Wheel", kh: "ចង្កូតឡាន", def: "The wheel used by the driver to control the direction.", img: "https://media.gettyimages.com/id/172421360/photo/steering-wheel.jpg?s=612x612&w=0&k=20&c=Qh9O_v_p_0_n_q_q_j_o_k_=", context: "Always keep both hands on the steering wheel." },
+                    { en: "Gear Lever", kh: "ដងលេខ", def: "A lever used to change gears in a vehicle.", img: "https://media.gettyimages.com/id/157434524/photo/gear-shifter.jpg?s=612x612&w=0&k=20&c=Qh9O_v_p_0_n_q_q_j_o_k_=", context: "Move the gear lever to 'P' when parking." },
+                    { en: "Seat Belt", kh: "ខ្សែក្រវ៉ាត់សុវត្ថិភាព", def: "A safety strap designed to hold a person in their seat.", img: "https://media.gettyimages.com/id/1168019685/photo/seat-belt.jpg?s=612x612&w=0&k=20&c=Qh9O_v_p_0_n_q_q_j_o_k_=", context: "Fasten your seat belt before starting the engine." },
+                    { en: "Rear-view Mirror", kh: "កញ្ចក់មើលក្រោយ (កណ្តាល)", def: "A mirror inside the car used to see the area behind.", img: "https://media.gettyimages.com/id/157434520/photo/rear-view-mirror.jpg?s=612x612&w=0&k=20&c=Qh9O_v_p_0_n_q_q_j_o_k_=", context: "Check the rear-view mirror before braking." },
+                    { en: "Accelerator Pedal", kh: "ឈ្នាន់ហ្គែរ", def: "The foot pedal used to control engine speed.", img: "https://media.gettyimages.com/id/157434528/photo/gas-pedal.jpg?s=612x612&w=0&k=20&c=Qh9O_v_p_0_n_q_q_j_o_k_=", context: "Press the accelerator pedal gently to speed up." },
+                    { en: "Brake Pedal", kh: "ឈ្នាន់ហ្វ្រាំង", def: "The foot pedal used to stop the vehicle.", img: "https://media.gettyimages.com/id/157434530/photo/brake-pedal.jpg?s=612x612&w=0&k=20&c=Qh9O_v_p_0_n_q_q_j_o_k_=", context: "The brake pedal is located next to the accelerator." },
+                    { en: "Handbrake", kh: "ហ្វ្រាំងដៃ", def: "A manually operated brake used to keep the car stationary.", img: "https://media.gettyimages.com/id/157434526/photo/parking-brake.jpg?s=612x612&w=0&k=20&c=Qh9O_v_p_0_n_q_q_j_o_k_=", context: "Pull the handbrake up when stopping on a hill." },
+                    { en: "Airbag", kh: "ពោងសុវត្ថិភាព", def: "A safety device that inflates rapidly in a collision.", img: "https://media.gettyimages.com/id/172421358/photo/airbag.jpg?s=612x612&w=0&k=20&c=Qh9O_v_p_0_n_q_q_j_o_k_=", context: "The airbag deployed instantly during the impact." },
+                    { en: "Upholstery", kh: "ពូក និងក្រណាត់ម្នាងសិលា", def: "The cloth or leather covering the seats.", img: "https://media.gettyimages.com/id/1168019680/photo/car-interior.jpg?s=612x612&w=0&k=20&c=Qh9O_v_p_0_n_q_q_j_o_k_=", context: "Leather upholstery is easier to clean than fabric." }
+                ]
+            }
+        ];
+
+        let currentGroup = null;
+        let currentLevel = 'A';
+        let currentCardIndex = 0;
+        let selectedMatch = { en: null, kh: null };
+
+        function init() { showGroupSelection(); }
+
+        function showGroupSelection() {
+            document.getElementById('groupSelection').classList.remove('hidden');
+            document.getElementById('levelNavigation').classList.add('hidden');
+            hideAllLevels();
+            const container = document.getElementById('groupSelection');
+            container.innerHTML = groups.map(g => `
+                <div onclick="selectGroup(${g.id})" class="glass-card p-6 rounded-2xl cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all">
+                    <div class="h-10 w-10 bg-indigo-600 text-white rounded-lg flex items-center justify-center mb-4 font-bold">${g.id}</div>
+                    <h3 class="text-xl font-bold mb-2">${g.title}</h3>
+                    <p class="text-slate-500 text-sm">Study 10 technical terms with definitions.</p>
+                </div>
+            `).join('');
+        }
+
+        function selectGroup(id) {
+            currentGroup = groups.find(g => g.id === id);
+            currentCardIndex = 0;
+            document.getElementById('groupSelection').classList.add('hidden');
+            document.getElementById('levelNavigation').classList.remove('hidden');
+            switchLevel('A');
+        }
+
+        function hideAllLevels() { ['levelA', 'levelB', 'levelC'].forEach(l => document.getElementById(l).classList.add('hidden')); }
+
+        function switchLevel(lvl) {
+            currentLevel = lvl;
+            hideAllLevels();
+            document.getElementById('level' + lvl).classList.remove('hidden');
+            ['A', 'B', 'C'].forEach(l => {
+                const btn = document.getElementById('btnLevel' + l);
+                btn.className = (l === lvl) 
+                    ? "px-6 py-3 rounded-full font-semibold bg-indigo-600 text-white shadow-md" 
+                    : "px-6 py-3 rounded-full font-semibold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50";
+            });
+            if (lvl === 'A') renderCard();
+            if (lvl === 'B') resetLevelB();
+            if (lvl === 'C') resetLevelC();
+        }
+
+        function renderCard() {
+            const word = currentGroup.words[currentCardIndex];
+            const container = document.getElementById('flashcardContainer');
+            container.innerHTML = `
+                <div class="glass-card rounded-3xl overflow-hidden shadow-xl animate-in fade-in zoom-in duration-300">
+                    <div class="p-8">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                            <div class="khmer-font text-2xl font-bold text-indigo-900 border-l-4 border-indigo-500 pl-4">${word.kh}</div>
+                            <div class="flex items-center gap-3 bg-indigo-900 text-white px-6 py-3 rounded-2xl shadow-lg">
+                                <span class="text-2xl font-bold">${word.en}</span>
+                                <button onclick="speak('${word.en}')" class="hover:scale-110 p-1 transition-transform">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="relative rounded-2xl overflow-hidden mb-6 bg-slate-100 aspect-video flex items-center justify-center border border-slate-200">
+                            <img src="${word.img}" alt="${word.en}" class="object-cover w-full h-full" onerror="this.src='https://via.placeholder.com/600x400?text=Auto+Part'">
+                        </div>
+                        <div class="space-y-4">
+                            <div class="bg-amber-50 border border-amber-100 p-5 rounded-2xl">
+                                <h4 class="text-xs font-bold text-amber-600 uppercase mb-1">Definition</h4>
+                                <p class="text-slate-700 leading-relaxed font-semibold">${word.def}</p>
+                            </div>
+                            <div class="bg-blue-50 border border-blue-100 p-5 rounded-2xl">
+                                <h4 class="text-xs font-bold text-blue-600 uppercase mb-1">Usage</h4>
+                                <p class="text-slate-700 italic">"${word.context}"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('cardCounter').innerText = `${currentCardIndex + 1} / 10`;
+            document.getElementById('prevBtn').disabled = currentCardIndex === 0;
+            document.getElementById('nextBtn').disabled = currentCardIndex === 9;
+        }
+
+        function nextCard() { if (currentCardIndex < 9) { currentCardIndex++; renderCard(); } }
+        function prevCard() { if (currentCardIndex > 0) { currentCardIndex--; renderCard(); } }
+        function speak(text) { const ut = new SpeechSynthesisUtterance(text); ut.lang = 'en-US'; window.speechSynthesis.speak(ut); }
+
+        function resetLevelB() {
+            selectedMatch = { en: null, kh: null };
+            document.getElementById('matchResult').classList.add('hidden');
+            const enWords = [...currentGroup.words].sort(() => Math.random() - 0.5);
+            const khWords = [...currentGroup.words].sort(() => Math.random() - 0.5);
+            document.getElementById('englishList').innerHTML = enWords.map(w => `
+                <button onclick="pickMatch('en', '${w.en}', this)" class="w-full text-left p-4 rounded-xl bg-white border border-slate-200 shadow-sm font-bold btn-en transition-all hover:border-indigo-300">${w.en}</button>
+            `).join('');
+            document.getElementById('khmerList').innerHTML = khWords.map(w => `
+                <button onclick="pickMatch('kh', '${w.en}', this)" class="w-full text-left p-4 rounded-xl bg-white border border-slate-200 shadow-sm font-bold khmer-font btn-kh transition-all hover:border-indigo-300">${w.kh}</button>
+            `).join('');
+        }
+
+        function pickMatch(type, value, el) {
+            document.querySelectorAll(`.btn-${type}`).forEach(b => b.classList.remove('ring-2', 'ring-indigo-500', 'bg-indigo-50'));
+            el.classList.add('ring-2', 'ring-indigo-500', 'bg-indigo-50');
+            selectedMatch[type] = { val: value, el: el };
+            
+            if (selectedMatch.en && selectedMatch.kh) {
+                if (selectedMatch.en.val === selectedMatch.kh.val) {
+                    selectedMatch.en.el.classList.replace('bg-indigo-50', 'bg-green-100');
+                    selectedMatch.en.el.disabled = true;
+                    selectedMatch.kh.el.classList.replace('bg-indigo-50', 'bg-green-100');
+                    selectedMatch.kh.el.disabled = true;
+                    selectedMatch = { en: null, kh: null };
+                    if (document.querySelectorAll('button[disabled]').length === 20) document.getElementById('matchResult').classList.remove('hidden');
+                } else {
+                    const e = selectedMatch.en.el, k = selectedMatch.kh.el;
+                    e.classList.add('animate-shake', 'bg-red-50');
+                    k.classList.add('animate-shake', 'bg-red-50');
+                    setTimeout(() => { 
+                        [e, k].forEach(x => x.classList.remove('ring-2', 'ring-indigo-500', 'bg-indigo-50', 'animate-shake', 'bg-red-50'));
+                    }, 500);
+                    selectedMatch = { en: null, kh: null };
+                }
+            }
+        }
+
+        function resetLevelC() {
+            document.getElementById('quizResult').classList.add('hidden');
+            const container = document.getElementById('quizContent');
+            container.classList.remove('hidden');
+            container.innerHTML = currentGroup.words.map((w, idx) => {
+                const options = [w.en];
+                while(options.length < 4) {
+                    const r = currentGroup.words[Math.floor(Math.random() * 10)].en;
+                    if(!options.includes(r)) options.push(r);
+                }
+                options.sort(() => Math.random() - 0.5);
+                return `
+                    <div class="glass-card p-6 rounded-2xl space-y-4">
+                        <p class="font-bold text-lg">${idx+1}. Identify: "${w.def}"</p>
+                        <p class="text-sm text-slate-500 italic khmer-font">Hint: ${w.kh}</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            ${options.map(opt => `<button onclick="checkQuiz(this, '${w.en}', '${opt}')" class="text-left p-4 border border-slate-200 rounded-xl hover:bg-slate-50 font-semibold transition-colors">${opt}</button>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('') + `<div class="text-center py-6"><button onclick="finishQuiz()" class="bg-indigo-900 text-white px-12 py-4 rounded-2xl font-bold hover:bg-black transition-colors shadow-lg">Submit Quiz</button></div>`;
+        }
+
+        function checkQuiz(el, correct, selected) {
+            el.closest('div').querySelectorAll('button').forEach(b => b.classList.remove('bg-indigo-600', 'text-white'));
+            el.classList.add('bg-indigo-600', 'text-white');
+            el.dataset.selected = "true";
+            el.dataset.correct = (correct === selected).toString();
+        }
+
+        function finishQuiz() {
+            let correctCount = 0;
+            const selectedButtons = document.querySelectorAll('button[data-selected="true"]');
+            if (selectedButtons.length < 10) {
+                alert("Please answer all questions.");
+                return;
+            }
+            selectedButtons.forEach(s => { if (s.dataset.correct === "true") correctCount++; });
+            document.getElementById('quizContent').classList.add('hidden');
+            document.getElementById('quizResult').classList.remove('hidden');
+            document.getElementById('scoreText').innerText = `${correctCount} / 10`;
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
